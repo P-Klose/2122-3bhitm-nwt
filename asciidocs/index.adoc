@@ -1,0 +1,105 @@
+= Dokumentation Netzwerktechnik
+Klose Peter, Angerer Mona
+1.0.0, 2022-03-21:
+ifndef::imagesdir[:imagesdir: images]
+//:toc-placement!:  // prevents the generation of the doc at this position, so it can be printed afterwards
+:sourcedir: ../src/main/java
+:icons: font
+:sectnums:    // Nummerierung der Überschriften / section numbering
+:toc: left
+
+//Need this blank line after ifdef, don't know why...
+ifdef::backend-html5[]
+
+// print the toc here (not at the default position)
+//toc::[]
+
+== Überblick:
+
+=== Ausgangslage:
+
+==== IP Adresse:
+|===
+|Name |Adresse
+
+|Netzwerk:
+|*10.9.8.0*
+
+|Start:
+|*10.9.8.1*
+
+|Ende:
+|*10.9.8.6*
+
+|Broadcast:
+|*10.9.8.7*
+
+|Subnetzmaske:
+|*255.255.255.248* oder */29*
+|===
+
+==== Proxmox
+
+Zur Verfügung hatten wir einen Container, welchen wir zuvor gemeinsam konfiguriert hatten.
+Die ganze Configuration war noch nicht eingerichtet, somit hatten wir auch kein Internet.
+
+=== Zielsetzung:
+
+Realisierung des unten in der Grafik gezeigten Systems.
+
+Über den Router soll die Kommunikation vom internen Netzwerk 10.9.8.0/29 nach außen in das GlueNetzwerk 10.9.8.0/24 möglich sein.
+
+_Alle CT (Container) und VMs (virtuelle Maschinen):_
+
+* sollen über ssh erreichbar sein, da das Terminal in Proxmox selbst öfters laggt.
+* müssen somit Ping bar sein innerhalb und außerhalb.
+
+==== Grafik:
+image::aufbau.png[]
+
+== Generelle Konfiguration
+
+Alle Netzwerkkarten befinden sich auf der `vmbr8 bridge`, weil diese mit der Adresse *10.9.8.** unsere Klasse realisiert.
+
+=== SSH
+
+
+
+== CT und VM Konfiguration
+
+Virtuelle Maschinen:
+
+=== Webserver (nginx)
+
+Container:
+
+=== Router
+
+* IP-Adressen:
+|===
+|Anordnung |Adresse |Gateway
+
+|Innen:
+|10.9.8.6/29
+|-
+
+|Außen:
+|10.9.8.255/26
+|10.9.8.254
+
+|===
+
+
+
+=== Lubuntu
+
+
+
+
+
+//=== Einschränkungen:
+
+//==== IP Adressen:
+
+
+
