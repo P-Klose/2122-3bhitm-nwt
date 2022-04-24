@@ -59,13 +59,48 @@ image::aufbau.png[]
 
 == Generelle Konfiguration
 
-Alle Netzwerkkarten befinden sich auf der `vmbr8 bridge`, weil diese mit der Adresse *10.9.8.** unsere Klasse realisiert.
+NOTE:: Folgendes wird nur auf *CT* ausgeführt **nicht Lubuntu**
+
+//Alle Netzwerkkarten befinden sich auf der `vmbr8 bridge`, weil diese mit der Adresse *10.9.8.** unsere Klasse realisiert.
+=== sudo
+
+Sudo wird installiert und um den gewohnten workflow mit `sudo <cmd>` oder als admin registrieren `sudo -s`zu gewährleisten.
+
+.Installation
+[source,bash]
+----
+apt update && apt upgrade -y
+apt install sudo
+----
+
+NOTE:: Sudo ist nicht notwendig
 
 === SSH
 
+SSH wird verwendet, damit wir effizienter und schneller arbeiten können. Auf Proxmox selbst gibt es nämlich manchmal eingabe bugs die mit ssh nicht mehr vorkommen.
+
+IMPORTANT:: Damit SSH funktioniert *muss* der *Container* und der *Router* richtig konfiguriert sein.
+
+.Installation
+[source,bash]
+----
+apt-get update
+apt update && apt upgrade -y
+
+apt install openssh-server
+
+systemctl enable ssh
+systemctl start ssh
+
+#check if running
+systemctl status ssh
+
+----
 
 
 == CT und VM Konfiguration
+
+
 
 Virtuelle Maschinen:
 
@@ -92,6 +127,53 @@ Container:
 
 
 === Lubuntu
+
+=== Pi-hole
+
+* Link zum Adminpanel: http://10.9.8.3/admin[hier]
+** nur möglich innerhalb des Schulnetzwerks.
+* Für weitere Konfiguration: https://sakis.tech/pi-hole-auf-einem-lxc-installieren-und-konfigurieren/[hier]
+
+==== Konfiguration
+
+*sudo* und *SSH* siehe oben.
+
+.SSH Zugang für Root freischalten
+[source,bash]
+----
+nano /etc/ssh/sshd_config <.>
+service ssh restart <.>
+----
+
+<.> ändern sie `#PermitRootLogin prohibit-password` auf `PermitRootLogin yes`
+<.> ssh wird neu gestartet damit die änderungen wirksam werden.
+
+==== Intsallation
+
+.Installations Pi-hole
+[source,bash]
+----
+apt update && apt upgrade -y <.>
+apt-get install curl -y <.>
+curl -sSL https://install.pi-hole.net | bash <.>
+----
+
+<.> System auf neusten Stand bringen
+<.> `Curl` wird bei der Installation benötigt
+<.> Installation von Pi-hole
+
+Nun müssen sie ein bisschen warten, dann werden sie von einem Installationsmenü begrüßt. Hier können alle Einstellungen auf Standard gelassen werden.
+
+.Admin Passwort ändern
+[source,bash]
+----
+pihole -a -p <.>
+----
+
+<.> neues Kennwort 2-mal eingeben. Fertig.
+
+IMPORTANT:: Dieses Passwort wird am Webinterface benötigt.
+
 
 
 
