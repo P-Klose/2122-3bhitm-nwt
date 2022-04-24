@@ -18,7 +18,11 @@ ifdef::backend-html5[]
 
 === Ausgangslage:
 
-==== IP Adresse:
+In der Schule ist eine Virtualisierungsplattform (Proxmox) vorhanden. Mit des Schulzugangsdaten kann man Innerhalb eines definierten Netztes weitere Subnetze anlegen.
+
+Für unsere Klasse ist das Subnetz mit der **IP-Adresse: 10.9.8.* /29** vorhanden, welches durch die `vmbr8` bridge realisiert wird.
+
+==== IP Adressen:
 |===
 |Name |Adresse
 
@@ -34,20 +38,35 @@ ifdef::backend-html5[]
 |Broadcast:
 |*10.9.8.7*
 
-|Subnetzmaske:
+|Subnetz:
 |*255.255.255.248* oder */29*
+
+|Gluenet-Netzwerk:
+|*10.9.8.225*
+
+|Gluenet-Subnetz:
+|*255.255.255.192*
 |===
 
 ==== Proxmox
 
-Zur Verfügung hatten wir einen Container, welchen wir zuvor gemeinsam konfiguriert hatten.
-Die ganze Configuration war noch nicht eingerichtet, somit hatten wir auch kein Internet.
+Zur Verfügung hatten wir einen Container, welchen wir zuvor gemeinsam teilweise konfiguriert hatten.
+Die ganze Konfiguration war noch nicht eingerichtet, somit hatten wir auch kein Internet.
 
 === Zielsetzung:
 
 Realisierung des unten in der Grafik gezeigten Systems.
 
+Für eine Ressourcenschonende Nutzung der Infrastruktur sollen, sofern das möglich ist LXC Container verwendet werden.
+
 Über den Router soll die Kommunikation vom internen Netzwerk 10.9.8.0/29 nach außen in das GlueNetzwerk 10.9.8.0/24 möglich sein.
+
+In dieses Router netzwerk sollen folgende Elemente hinzugefügt werden:
+
+* Ein Webserver mit selbst gehosteter Seite. Die Seite muss innerhalb des Schulnetzwerks aufrufbar sein.
+* Ein geklontes Desktop Client Template.
+* Pi-Hole der als AdBlocker fungiert.
+
 
 _Alle CT (Container) und VMs (virtuelle Maschinen):_
 
@@ -64,14 +83,17 @@ NOTE:: Folgendes wird nur auf *CT* ausgeführt **nicht Lubuntu**
 //Alle Netzwerkkarten befinden sich auf der `vmbr8 bridge`, weil diese mit der Adresse *10.9.8.** unsere Klasse realisiert.
 === sudo
 
-Sudo wird installiert und um den gewohnten workflow mit `sudo <cmd>` oder als admin registrieren `sudo -s`zu gewährleisten.
+Sudo wird installiert und um den gewohnten workflow mit `sudo <cmd>` oder als admin registrieren `sudo -s` zu gewährleisten.
 
 .Installation
 [source,bash]
 ----
 apt update && apt upgrade -y
 apt install sudo
+sudo usermod -a -G sudo <username> <.>
 ----
+
+<.> Falls ein weiterer User angelegt wurde, kann dieser so hinzugefügt werden
 
 NOTE:: Sudo ist nicht notwendig
 
@@ -84,8 +106,7 @@ IMPORTANT:: Damit SSH funktioniert *muss* der *Container* und der *Router* richt
 .Installation
 [source,bash]
 ----
-apt-get update
-apt update && apt upgrade -y
+apt-get update && apt-get upgrade -y
 
 apt install openssh-server
 
@@ -100,13 +121,61 @@ systemctl status ssh
 
 == CT und VM Konfiguration
 
+.detaillierte Beschreibung einer CT erstellung anhand des Webservers
+[%collapsible]
+====
+
+.klicken sie auf `create CT`
+image::00.png[]
+.*WICHTIG!* Passwort ist dann das CT Passwort
+image::01.png[]
+.auswahl des Images in unseren fall immer Debian
+image::02.png[]
+.Speicherort und Größe festlegen
+image::03.png[]
+.CPU Kerne einstellen 1 reicht völlig aus.
+image::04.png[]
+.RAM einstellen 512MB immer weitere 512MB falls notwendig.
+image::05.png[]
+.Netzwerkeinstellungen diese können jedoch nachher noch geändert werden.
+image::06.png[]
+.DNS
+image::07.png[]
+.Summery
+image::08.png[]
+.Log-Fenster
+image::09.png[]
+.Neuer CT nun in der Seitenleiste
+image::10.png[]
+====
+
+=== Webserver (nginx):
+
+IP: 10.9.8.1
 
 
-Virtuelle Maschinen:
+==== Konfiguration
 
-=== Webserver (nginx)
+*sudo* und *SSH* siehe oben.
 
-Container:
+
+.Installation Nginx
+[source,bash]
+----
+sudo apt-get update
+sudo apt-get install -y nginx-light
+----
+
+.Change Site
+[source,bash]
+----
+cd /var/www/html <.>
+ls <.>
+----
+
+<.> Default site location.
+<.> Change the listed file or paste your complete Projekt there.
+
 
 === Router
 
@@ -125,10 +194,14 @@ Container:
 |===
 
 
-
 === Lubuntu
 
+IP: 10.9.8.2
+
+
 === Pi-hole
+
+IP: 10.9.8.3
 
 * Link zum Adminpanel: http://10.9.8.3/admin[hier]
 ** nur möglich innerhalb des Schulnetzwerks.
@@ -148,7 +221,6 @@ service ssh restart <.>
 <.> ändern sie `#PermitRootLogin prohibit-password` auf `PermitRootLogin yes`
 <.> ssh wird neu gestartet damit die änderungen wirksam werden.
 
-==== Intsallation
 
 .Installations Pi-hole
 [source,bash]
@@ -175,9 +247,41 @@ pihole -a -p <.>
 IMPORTANT:: Dieses Passwort wird am Webinterface benötigt.
 
 
+=== Proxy
+
+==== Konfiguration Server
+
+*sudo* und *SSH* siehe oben.
 
 
+.Installation Proxy
+[source,bash]
+----
+sudo apt-get update
+apt-get install squid
+----
 
+.Change config
+[source,bash]
+----
+sudo nano /etc/squid/squid.conf
+----
+
+[source,bash]
+----
+http_port 1234 <.>
+http_acces allow all <.>
+visible_hostname proxy <.>
+----
+
+<.> in Zeile 1907
+<.> in Zeile 1411
+<.> in Zeile 6111
+
+[source,bash]
+----
+systemctl restart squid
+----
 
 //=== Einschränkungen:
 
