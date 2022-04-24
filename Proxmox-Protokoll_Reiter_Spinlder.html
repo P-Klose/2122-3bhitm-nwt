@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 2.0.10">
+<meta name="author" content="Lydia Reiter, Spindler Thomas">
+<link rel="icon" type="image/png" href="themes/favicon.png">
+<title>Netzwerktechnik Dokumentation</title>
+<style>
+
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+pre.rouge .hll {
+  background-color: #ffc;
+}
+pre.rouge .hll * {
+  background-color: initial;
+}
+</style>
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Netzwerktechnik Dokumentation</h1>
+<div class="details">
+<span id="author" class="author">Lydia Reiter, Spindler Thomas</span><br>
+<span id="revnumber">version 1.0.0,</span>
+<span id="revdate">2022-03-20</span>
+<br><span id="revremark">NWT</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_overview">1. Overview</a>
+<ul class="sectlevel2">
+<li><a href="#_ip_adressen">1.1. IP-Adressen:</a></li>
+<li><a href="#_ssh">1.2. SSH</a></li>
+</ul>
+</li>
+<li><a href="#_grundausstattung">2. Grundausstattung</a>
+<ul class="sectlevel2">
+<li><a href="#_ssh_2">2.1. SSH</a></li>
+<li><a href="#_ufw">2.2. UFW</a></li>
+<li><a href="#_sudo">2.3. Sudo</a></li>
+<li><a href="#_unattended_upgrades">2.4. Unattended upgrades:</a></li>
+<li><a href="#_user">2.5. User</a></li>
+</ul>
+</li>
+<li><a href="#_router">3. Router</a></li>
+<li><a href="#_dns">4. DNS</a></li>
+<li><a href="#_webserver">5. Webserver</a></li>
+<li><a href="#_lubuntu">6. Lubuntu</a>
+<ul class="sectlevel2">
+<li><a href="#_rdc">6.1. RDC</a></li>
+<li><a href="#_ssh_3">6.2. SSH</a></li>
+</ul>
+</li>
+<li><a href="#_pfsense">7. PFSense</a></li>
+<li><a href="#_proxy">8. Proxy</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_overview"><a class="anchor" href="#_overview"></a>1. Overview</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_ip_adressen"><a class="anchor" href="#_ip_adressen"></a>1.1. IP-Adressen:</h3>
+<div class="paragraph">
+<p>Die IP-Adressen der CT und Vms:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Router: 10.9.8.214</p>
+</li>
+<li>
+<p>Router außen: 10.9.8.250</p>
+</li>
+<li>
+<p>Pi-Hole: 10.9.8.209</p>
+</li>
+<li>
+<p>Ngnix: 10.9.8.210</p>
+</li>
+<li>
+<p>Lubuntu: 10.9.8.211</p>
+</li>
+<li>
+<p>Pfsense: 10.9.8.212</p>
+</li>
+<li>
+<p>Proxy: 10.9.8.213</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_ssh"><a class="anchor" href="#_ssh"></a>1.2. SSH</h3>
+<div class="paragraph">
+<p>eine SSH Verbindung sollte jederzeit mit allen der Instanzen möglich sein:</p>
+</div>
+<div class="paragraph">
+<p>Diese läuft bei allen Maschinen auf Port 2022</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">ssh root@&lt;IP-ADDR&gt; <span class="nt">-p</span> 2022
+
+<span class="c"># Root access wird bald abgeschaltet, daher:</span>
+
+ssh user@&lt;IP_ADDR&gt; <span class="nt">-p</span> 2022</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_grundausstattung"><a class="anchor" href="#_grundausstattung"></a>2. Grundausstattung</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Es wurden (bis auf die Lubuntu installation) Debian Container verwendet aus folgenden Gründen:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Effizienter als Virtuelle Machienen</p>
+</li>
+<li>
+<p>Bereits Erfahrung im Arbeiten mit Debian</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Diese sind wie folgt hardwaretechnisch ausgestattet:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>2 CPU threads (für Parallelisierung)</p>
+</li>
+<li>
+<p>512 MB Arbeitsspeicher</p>
+</li>
+<li>
+<p>1 - 2 Netzwerkinterfaces</p>
+</li>
+<li>
+<p>8 GB Boot drive</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Jeder der einzelnen virtuellen Maschinen / Container hat eine gewisse Grundausstattung, und dazu gehören:</p>
+</div>
+<div class="sect2">
+<h3 id="_ssh_2"><a class="anchor" href="#_ssh_2"></a>2.1. SSH</h3>
+<div class="paragraph">
+<p>Eine SSH Verbindung kann jederzeit zu allen Containern und Vms aufgebaut werden. Dies ermöglicht schnelles und effizientes Arbeiten.</p>
+</div>
+<div class="paragraph">
+<p>Installation von SSH:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash"><span class="nb">sudo </span>apt-get update
+<span class="nb">sudo </span>apt <span class="nb">install</span> <span class="o">&amp;&amp;</span> apt upgrade <span class="nt">-y</span>
+
+<span class="nb">sudo </span>apt <span class="nb">install </span>openssh-server
+<span class="nb">sudo </span>systemctl <span class="nb">enable </span>ssh
+<span class="nb">sudo </span>systemctl start ssh
+
+vi /etc/ssh/sshd_config</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Diese wird dann noch mit passenden Einstellungen konfiguriert.</p>
+</div>
+<div class="paragraph">
+<p>SSH kann allerdings bereits mit der default Configuration funktionieren.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">ssh &lt;USERNAME&gt;@&lt;HOST&gt;
+
+<span class="c"># z.B:</span>
+
+ssh <span class="nb">test</span>@10.0.0.8 <span class="nt">-p</span> 2022</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Derzeit werden die SSH Server auf Port 2022 umgelegt.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Um den Port umzulegen, muss dies auch in systemctl umconfiguriert werden:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">nano /lib/systemd/system/ssh.socket
+
+<span class="c"># Dort die folgende Line Abändern:</span>
+
+<span class="nv">ListenStream</span><span class="o">=</span>22 <i class="conum" data-value="1"></i><b>(1)</b></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>22 mit neuem Port ersezten!</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Wenn dies nicht erledigt wird, started der ssh Server oft nicht automatisch. Dieser läuft allerdings leider in keinen Fehler, sondern wird einfach als "loaded" angezeigt, was zur Verwirrung führen kann.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_ufw"><a class="anchor" href="#_ufw"></a>2.2. UFW</h3>
+<div class="paragraph">
+<p>Alle Ports wurden mithilfe von UFW gesichert und abgedreht. Pings werden zukünftig ebenfalls ausgeschaltet.</p>
+</div>
+<div class="paragraph">
+<p>Die benötigten Ports sind dann allerdings freigegeben, sodass z.B die SSH-Verbindungen funktionieren.</p>
+</div>
+<div class="paragraph">
+<p>Diese können mit folgendem Befehl eingesehen werden:</p>
+</div>
+<div class="paragraph">
+<p>Aufgrund der komplexität der Firewall beim Router musste die Firewall dort aktuell deaktiviert werden. An einer Lösung wird gearbeitet.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash"><span class="nb">sudo </span>ufw status
+
+<span class="c"># ports freigeben:</span>
+
+<span class="nb">sudo </span>ufw allow 22<i class="conum" data-value="1"></i><b>(1)</b></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Portnummer</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_sudo"><a class="anchor" href="#_sudo"></a>2.3. Sudo</h3>
+<div class="paragraph">
+<p>Da dies mit Debian nicht mehr vorinstalliert ist, wurde dies einfach auf die Container hinzugefügt. Dies vereinfacht das zukünftige Anlegen und Arbeiten mit Benutzer.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">apt <span class="nb">install sudo</span></code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_unattended_upgrades"><a class="anchor" href="#_unattended_upgrades"></a>2.4. Unattended upgrades:</h3>
+<div class="paragraph">
+<p>Unattended upgrades wurde installiert, dass der Server updates automatisch installiert.</p>
+</div>
+<div class="paragraph">
+<p>Installieren:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash"><span class="nb">sudo </span>apt <span class="nb">install </span>unattended-upgrades apt-listchanges bsd-mailx</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Configurieren:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash"><span class="nb">sudo </span>dpkg-reconfigure <span class="nt">-plow</span> unattended-upgrades
+<span class="c"># dann auf "yes"</span>
+
+<span class="nb">sudo </span>vim /etc/apt/apt.conf.d/50unattended-upgrades
+
+<span class="c">#Unkommentieren von folgenden Lines:</span>
+
+Unattended-Upgrade::Mail <span class="s2">"mctom.spdo@gmail.com"</span><span class="p">;</span>
+
+Unattended-Upgrade::Automatic-Reboot <span class="s2">"true"</span><span class="p">;</span>
+
+<span class="c"># -----</span>
+
+<span class="nb">sudo </span>vim /etc/apt/listchanges.conf
+
+<span class="c">#Config:</span>
+
+<span class="nv">email_address</span><span class="o">=</span>mctom.spdo@gmail.com</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Testen der Configuration:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash"><span class="nb">sudo </span>unattended-upgrades <span class="nt">--dry-run</span></code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_user"><a class="anchor" href="#_user"></a>2.5. User</h3>
+<div class="paragraph">
+<p>erstellen eines neuen Users:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash"><span class="nb">sudo </span>adduser user</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>hinzufügen zur Sudogruppe:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">usermod <span class="nt">-aG</span> <span class="nb">sudo </span>user</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_router"><a class="anchor" href="#_router"></a>3. Router</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Am Router CT sind 2 Netzwerkarten angebracht. Jeder der einen Netzwerkkarten befindet sich in einem Netzwerk.</p>
+</div>
+<div class="paragraph">
+<p>Damit der Container zwischen diesen zwei Interfaces routet, muss dieser configure werden:</p>
+</div>
+<div class="paragraph">
+<p>Dazu muss man einfach das folgende File editieren:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">vi /etc/sysctl.conf
+
+net.ipv4.ip_forward <span class="o">=</span> 1 <i class="conum" data-value="1"></i><b>(1)</b>
+<span class="nb">echo </span>1 <span class="o">&gt;</span> /proc/sys/net/ipv4/ip_forward <i class="conum" data-value="2"></i><b>(2)</b>
+reboot <i class="conum" data-value="3"></i><b>(3)</b></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Diese Zeile auskommentieren</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Da Debian dies standardmäßig ausgeschalten hat, müssen wir dies einschalten</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Man könnte ebenfalls gewisse Teile reloaden, allerdings ist in diesem Fall ein reboot schneller, ale dies zu recherchieren.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_dns"><a class="anchor" href="#_dns"></a>4. DNS</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Als DNS wurde PI-hole verwendet.</p>
+</div>
+<div class="paragraph">
+<p>Zum Installieren wurde einfach der die offizielle Dokumentation verwendet:</p>
+</div>
+<div class="paragraph">
+<p><a href="https://github.com/pi-hole/pi-hole/#one-step-automated-install">Installation von PI-hole</a></p>
+</div>
+<div class="paragraph">
+<p>Das Passwort für das Webinterface wurde ebenfalls auf das Standartpasswort geändert. Hierfür wurde folgender Befehl verwendet:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">pihole <span class="nt">-a</span> <span class="nt">-p</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_webserver"><a class="anchor" href="#_webserver"></a>5. Webserver</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Nginx wurde als Webserver verwendet. Derzeit ist dort allerdings nur die Standard webpage gehostet.</p>
+</div>
+<div class="paragraph">
+<p>Eine eigene Seite hat derzeit keine Priorität und wird aktuell nach hinten verschoben.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_lubuntu"><a class="anchor" href="#_lubuntu"></a>6. Lubuntu</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Eine VM mit Lubuntu Desktop wurde eingerichtet, und in das Netzwerk eingebunden. Zu dieser kann jederzeit eine SSH oder RDP Verbindung aufgebaut werden</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Der Bildschirmschoner sollte deaktiviert werden.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_rdc"><a class="anchor" href="#_rdc"></a>6.1. RDC</h3>
+<div class="paragraph">
+<p>Auf Lubuntu wurde eine RDC (Remote Desktop Connection) eingerichtet, sodass hier ebenfalls ein schnelles und einfaches Arbeiten möglich ist.</p>
+</div>
+<div class="paragraph">
+<p>Hierfür wurde XRDP verwendet:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash"><span class="nb">sudo </span>apt <span class="nb">install </span>xrdp</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Dies wurde ebenfalls konfiguriert und eingerichtet.</p>
+</div>
+<div class="paragraph">
+<p>Die remote Verbindung kann dann einfach mit den folgenden Daten aufgebaut werden:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="text">IP: 10.9.8.211
+Username: thelast
+Password: &lt;PASSWORD&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_ssh_3"><a class="anchor" href="#_ssh_3"></a>6.2. SSH</h3>
+<div class="paragraph">
+<p>Die SSH Verbindung wurde gleich wie bei allen anderen Maschinen eingerichtet.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_pfsense"><a class="anchor" href="#_pfsense"></a>7. PFSense</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Da PFSense ein eigenes ISO benötigt, und dieses nicht einfach auf einem normalen Linux laufen kann, wurde dies beim Prof. Angefragt, da wir dies nicht selbst auf den Server hochladen dürfen.</p>
+</div>
+<div class="paragraph">
+<p>Da das ISO bereits auf dem Server zur verfügung steht, wurde bereits damit begonnen, dieses zu installieren und fertig zu machen. In der nächsten Stunde ist geplant, daran weiterzuarbeiten.</p>
+</div>
+<div class="paragraph">
+<p>Installation:</p>
+</div>
+<div class="paragraph">
+<p>Für die Installation von PFSense werden zwei Netzwerkkarten benötigt, denn eine wird für das normale Netzwerk verwendet und die andere Karte wird für ein internes Vlan verwendet.</p>
+</div>
+<div class="paragraph">
+<p>vtnet0 &#8594; Netzwerkkarte für das externe Netzwerk</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_proxy"><a class="anchor" href="#_proxy"></a>8. Proxy</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Der Proxy CT wurde angelegt und vorbereitet, an einer Proxy installation wird aktuell noch gearbeitet.</p>
+</div>
+<div class="listingblock">
+<div class="title">Installations Schritte</div>
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash"><span class="nb">sudo </span>apt-get update
+
+<span class="nb">sudo </span>apt-get <span class="nb">install </span>squid</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Konfiguration</div>
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash"><span class="nb">sudo </span>nano /etc/squid/squid.conf</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<div class="title">Für mehr Information und Konfigurationen</div>
+<p><a href="https://phoenixnap.com/kb/setup-install-squid-proxy-server-ubuntu" class="bare">https://phoenixnap.com/kb/setup-install-squid-proxy-server-ubuntu</a></p>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version 1.0.0<br>
+Last updated 2022-03-20 18:11:06 UTC
+</div>
+</div>
+<style>
+pre.rouge table td { padding: 5px; }
+pre.rouge table pre { margin: 0; }
+pre.rouge .cm {
+  color: #999988;
+  font-style: italic;
+}
+pre.rouge .cp {
+  color: #999999;
+  font-weight: bold;
+}
+pre.rouge .c1 {
+  color: #999988;
+  font-style: italic;
+}
+pre.rouge .cs {
+  color: #999999;
+  font-weight: bold;
+  font-style: italic;
+}
+pre.rouge .c, pre.rouge .ch, pre.rouge .cd, pre.rouge .cpf {
+  color: #999988;
+  font-style: italic;
+}
+pre.rouge .err {
+  color: #a61717;
+  background-color: #e3d2d2;
+}
+pre.rouge .gd {
+  color: #000000;
+  background-color: #ffdddd;
+}
+pre.rouge .ge {
+  color: #000000;
+  font-style: italic;
+}
+pre.rouge .gr {
+  color: #aa0000;
+}
+pre.rouge .gh {
+  color: #999999;
+}
+pre.rouge .gi {
+  color: #000000;
+  background-color: #ddffdd;
+}
+pre.rouge .go {
+  color: #888888;
+}
+pre.rouge .gp {
+  color: #555555;
+}
+pre.rouge .gs {
+  font-weight: bold;
+}
+pre.rouge .gu {
+  color: #aaaaaa;
+}
+pre.rouge .gt {
+  color: #aa0000;
+}
+pre.rouge .kc {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kd {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kn {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kp {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kr {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kt {
+  color: #445588;
+  font-weight: bold;
+}
+pre.rouge .k, pre.rouge .kv {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .mf {
+  color: #009999;
+}
+pre.rouge .mh {
+  color: #009999;
+}
+pre.rouge .il {
+  color: #009999;
+}
+pre.rouge .mi {
+  color: #009999;
+}
+pre.rouge .mo {
+  color: #009999;
+}
+pre.rouge .m, pre.rouge .mb, pre.rouge .mx {
+  color: #009999;
+}
+pre.rouge .sb {
+  color: #d14;
+}
+pre.rouge .sc {
+  color: #d14;
+}
+pre.rouge .sd {
+  color: #d14;
+}
+pre.rouge .s2 {
+  color: #d14;
+}
+pre.rouge .se {
+  color: #d14;
+}
+pre.rouge .sh {
+  color: #d14;
+}
+pre.rouge .si {
+  color: #d14;
+}
+pre.rouge .sx {
+  color: #d14;
+}
+pre.rouge .sr {
+  color: #009926;
+}
+pre.rouge .s1 {
+  color: #d14;
+}
+pre.rouge .ss {
+  color: #990073;
+}
+pre.rouge .s, pre.rouge .sa, pre.rouge .dl {
+  color: #d14;
+}
+pre.rouge .na {
+  color: #008080;
+}
+pre.rouge .bp {
+  color: #999999;
+}
+pre.rouge .nb {
+  color: #0086B3;
+}
+pre.rouge .nc {
+  color: #445588;
+  font-weight: bold;
+}
+pre.rouge .no {
+  color: #008080;
+}
+pre.rouge .nd {
+  color: #3c5d5d;
+  font-weight: bold;
+}
+pre.rouge .ni {
+  color: #800080;
+}
+pre.rouge .ne {
+  color: #990000;
+  font-weight: bold;
+}
+pre.rouge .nf, pre.rouge .fm {
+  color: #990000;
+  font-weight: bold;
+}
+pre.rouge .nl {
+  color: #990000;
+  font-weight: bold;
+}
+pre.rouge .nn {
+  color: #555555;
+}
+pre.rouge .nt {
+  color: #000080;
+}
+pre.rouge .vc {
+  color: #008080;
+}
+pre.rouge .vg {
+  color: #008080;
+}
+pre.rouge .vi {
+  color: #008080;
+}
+pre.rouge .nv, pre.rouge .vm {
+  color: #008080;
+}
+pre.rouge .ow {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .o {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .w {
+  color: #bbbbbb;
+}
+pre.rouge {
+  background-color: #f8f8f8;
+}
+</style>
+</body>
+</html>
